@@ -15,7 +15,7 @@
 #include "cryptopp/files.h"
 
 // Uncomment the following lines if you want to build this as a DLL
-#include "ac17_cli_app.h"
+#include "ac17.h"
 
 // function to split a string into a vector of strings
 std::vector<std::string> splitAttributes(const std::string &input)
@@ -462,6 +462,7 @@ int decryptMessage(const char *publicKeyFile, const char *privateKeyFile, const 
 }
 
 // main function
+// comment the main function if you want to build this as a static library or shared library
 int main(int argc, char *argv[])
 {
     if (argc < 2)

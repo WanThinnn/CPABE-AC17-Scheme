@@ -32,25 +32,22 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
             "label": "C/C++: cl.exe build executable",
             "command": "cl.exe",
             "args": [
-              "/MD",
-              "/GS",
-              "/O2",
-              "/Zi",
-              "/EHsc",
-              //"/LD",  // Add this parameter to create DLL
-              //"/DBUILD_DLL", // Add this parameter to create DLL
-              //"/Fe:${fileDirname}\\${fileBasenameNoExtension}.dll",
-              "/Fe:${fileDirname}\\${fileBasenameNoExtension}.exe",
-              "${file}",
-              "/I${workspaceFolder}\\include",
-              "/link",
-              "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
-              "rabe_ffi.lib",
-              "cryptlib.lib", //CryptoPP890 Library
-              "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
-              "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
-              "ntdll.lib", // Windows system libraries
-              "/MACHINE:X64"
+                "/MD",
+                "/GS",
+                "/O2",
+                "/Zi",
+                "/EHsc",
+                "/Fe:${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "${file}",
+                "/I${workspaceFolder}\\include",
+                "/link",
+                "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
+                "librabe_ffi.lib", // Rabe FFI Library
+                "cryptlib.lib", //CryptoPP890 Library
+                "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
+                "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
+                "ntdll.lib", // Windows system libraries
+                "/MACHINE:X64"
             ],
             "problemMatcher": ["$msCompile"],
             "group": {
@@ -61,46 +58,14 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
         },
         {
             "type": "shell",
-            "label": "C/C++: cl.exe build dynamic linking library (DLL)",
-            "command": "cl.exe",
-            "args": [
-                "/MD",
-                "/GS",
-                "/O2",
-                "/Zi",
-                "/EHsc",
-                "/LD",  // for build DLL
-                "/DBUILD_DLL", // define macro BUILD_DLL
-                "/Fe:${fileDirname}\\${fileBasenameNoExtension}.dll",
-                "${file}",
-                "/I${workspaceFolder}\\include",
-                "/link",
-                "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
-                "librabe_ffi.lib",
-                "cryptlib.lib", //CryptoPP890 Library
-                "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
-                "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
-                "ntdll.lib", // Windows system libraries
-                "/MACHINE:X64"
-            ],
-            "problemMatcher": ["$msCompile"],
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "detail": "C/C++: cl.exe build dynamic linking library (DLL)"
-        },
-        {
-            "type": "shell",
             "label": "C/C++: cl.exe build static library",
             "command": "cl.exe",
             "args": [
-                "/MD",
+                "/MD",  // Use static runtime
                 "/GS",
                 "/O2",
                 "/Zi",
                 "/EHsc",
-                "/DBUILD_DLL", // define macro BUILD_DLL
                 "/c",  // Compile without linking
                 "${file}",
                 "/I${workspaceFolder}\\include"
@@ -121,10 +86,10 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
                 "${fileDirname}\\${fileBasenameNoExtension}.obj",
                 "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
                 "librabe_ffi.lib",
-                "cryptlib.lib", //CryptoPP890 Library
-                "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
-                "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
-                "ntdll.lib", // Windows system libraries
+                "cryptlib.lib",
+                "bcrypt.lib",
+                "advapi32.lib",
+                "ntdll.lib"
             ],
             "problemMatcher": ["$msCompile"],
             "group": {
@@ -132,7 +97,38 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
                 "isDefault": false
             },
             "detail": "Task to create static library."
-        }
+        },
+        {
+            "type": "shell",
+            "label": "C/C++: cl.exe build dynamic linking library (DLL)",
+            "command": "cl.exe",
+            "args": [
+                "/MD",
+                "/GS",
+                "/O2",
+                "/Zi",
+                "/EHsc",
+                "/LD",  // for build DLL
+                "/DBUILD_DLL", // define macro BUILD_DLL
+                "/Fe:${fileDirname}\\${fileBasenameNoExtension}.dll",
+                "${file}",
+                "/I${workspaceFolder}\\include",
+                "/link",
+                "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
+                "librabe_ffi.lib", // Rabe FFI Library
+                "cryptlib.lib", //CryptoPP890 Library
+                "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
+                "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
+                "ntdll.lib", // Windows system libraries
+                "/MACHINE:X64"
+            ],
+            "problemMatcher": ["$msCompile"],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "detail": "C/C++: cl.exe build dynamic linking library (DLL)"
+        },
     ]
 }
   ```
@@ -146,10 +142,10 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
 
 ### Using the Executable
 
-To use the pre-built executable, navigate to the `CPABE-AC17-Scheme/main` directory and run the `ac17_cli_app.exe` file:
+To use the pre-built executable, navigate to the `CPABE-AC17-Scheme/demo` directory and run the `ac17_cli_app.exe` file:
 
 ```sh
-cd CPABE-AC17-Scheme/main
+cd CPABE-AC17-Scheme/demo
 .\ac17_cli_app.exe
 ```
 
