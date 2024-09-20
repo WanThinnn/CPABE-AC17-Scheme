@@ -45,9 +45,9 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
               "/link",
               "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
               "rabe_ffi.lib",
-              "cryptlib.lib",
-              "bcrypt.lib",
-              "advapi32.lib",
+              "cryptlib.lib", //CryptoPP890 Library
+              "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
+              "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
               "ntdll.lib",
               "/MACHINE:X64"
             ],
