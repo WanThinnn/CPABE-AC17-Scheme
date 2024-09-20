@@ -100,8 +100,7 @@ After building the library, you can integrate it into any program on Windows. He
 Please go to <b>python-sources</b> folder to see more.
 
 ## Acknowledgements
-Special thanks to [Aya0wind](https://github.com/Aya0wind) for the [Rabe-ffi](https://github.com/Aya0wind/Rabe-ffi) project and [CryptoPP](https://github.com/weidai11/cryptopp) Library, which was instrumental in building this library.
-
+Special thanks to [Aya0wind](https://github.com/Aya0wind) for the [Rabe-ffi](https://github.com/Aya0wind/Rabe-ffi) project and the [CryptoPP](https://github.com/weidai11/cryptopp) Library for helping me build this library.
 ## License
 
 This project is open-source and available for anyone to use, modify, and distribute. We encourage you to clone, fork, and contribute to this project to help improve and expand its capabilities.
