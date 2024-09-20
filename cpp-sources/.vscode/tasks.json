@@ -11,14 +11,14 @@
                 "/O2",
                 "/Zi",
                 "/EHsc",
-                // "/LD",  // Thêm tham số này để tạo DLL
-                // "/DBUILD_DLL",
-                // "/Fe:${fileDirname}\\${fileBasenameNoExtension}.dll",
+                "/LD",  // Thêm tham số này để tạo DLL
+                "/DBUILD_DLL",
+                "/Fe:${fileDirname}\\${fileBasenameNoExtension}.dll",
                 "/Fe:${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "${file}",
                 "/I${workspaceFolder}\\include",
                 "/link",
-                "/LIBPATH:${workspaceFolder}\\lib",
+                "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
                 "rabe_ffi.lib",
                 "cryptlib.lib",
                 "bcrypt.lib",
