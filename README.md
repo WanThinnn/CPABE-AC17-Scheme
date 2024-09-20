@@ -48,7 +48,7 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
               "cryptlib.lib", //CryptoPP890 Library
               "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
               "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
-              "ntdll.lib",
+              "ntdll.lib", // Windows system libraries
               "/MACHINE:X64"
             ],
             "problemMatcher": ["$msCompile"],
