@@ -14,25 +14,10 @@
 #include "cryptopp/base64.h"
 #include "cryptopp/files.h"
 
-#ifdef _WIN32
-#ifdef BUILD_DLL
-#define DLL_EXPORT __declspec(dllexport)
-#else
-#define DLL_EXPORT __declspec(dllimport)
-#endif
-#else
-#define DLL_EXPORT __attribute__((visibility("default")))
-#endif
+// Uncomment the following lines if you want to build this as a DLL
+#include "ac17_cli_app.h"
 
-extern "C" {
-    DLL_EXPORT int setup(const char *path, const char *format);
-    DLL_EXPORT int generateSecretKey(const char *publicKeyFile, const char *masterKeyFile, const char *attributes, const char *privateKeyFile, const char *format);
-    DLL_EXPORT int encryptMessage(const char *publicKeyFile, const char *plaintextFile, const char *policy, const char *ciphertextFile, const char *format);
-    DLL_EXPORT int decryptMessage(const char *publicKeyFile, const char *privateKeyFile, const char *ciphertextFile, const char *recovertextFile, const char *format);
-}
-
-
-// Hàm tách chuỗi dựa trên dấu cách
+// function to split a string into a vector of strings
 std::vector<std::string> splitAttributes(const std::string &input)
 {
     std::vector<std::string> result;
@@ -47,20 +32,60 @@ std::vector<std::string> splitAttributes(const std::string &input)
     return result;
 }
 
-char *ensureJsonString(const std::string &str)
-{
-    // Thêm dấu ngoặc kép quanh các chữ cái
-    std::regex re(R"(\b[A-Za-z]\b)");
-    std::string result = std::regex_replace(str, re, "\"$&\"");
+// function to convert a string to lowercase
+char* toLowerCase(const char* str) {
+    size_t len = std::strlen(str);
+    char* lowerStr = new char[len + 1]; 
+    std::strcpy(lowerStr, str);
 
-    // Cấp phát bộ nhớ cho char*
-    char *cstr = new char[result.length() + 1]; // +1 để chứa ký tự kết thúc '\0'
-    std::strcpy(cstr, result.c_str());
+    std::transform(lowerStr, lowerStr + len, lowerStr, ::tolower);
 
-    return cstr;
-    delete[] cstr;
+    return lowerStr;
 }
-// Hàm SaveFile đã được cải thiện với try-catch
+
+
+// ensureJsonString function
+char* ensureJsonString(const char* input) {
+    std::string lowerInput = toLowerCase(input); //convert to lower case
+    std::istringstream iss(lowerInput);
+    std::string token;
+    std::vector<std::string> tokens;
+    std::string output;
+
+    // split the input string into tokens
+    while (iss >> token) {
+        size_t start = 0;
+        size_t end = 0;
+        while (end < token.size()) {
+            if (token[end] == '(' || token[end] == ')') {
+                if (start != end) {
+                    tokens.push_back("\"" + token.substr(start, end - start) + "\"");
+                }
+                tokens.push_back(std::string(1, token[end]));
+                start = end + 1;
+            }
+            end++;
+        }
+        if (start != end) {
+            tokens.push_back("\"" + token.substr(start, end - start) + "\"");
+        }
+    }
+
+    for (const auto& t : tokens) {
+        output += t + " ";
+    }
+
+    if (!output.empty() && output.back() == ' ') {
+        output.pop_back();
+    }
+
+    char* result = new char[output.length() + 1];
+    std::strcpy(result, output.c_str());
+    return result;
+}
+
+
+// savefile function with different formats
 void SaveFile(const std::string &filename, const char *data, const std::string &format)
 {
     if (data == nullptr)
@@ -107,6 +132,8 @@ void SaveFile(const std::string &filename, const char *data, const std::string &
     }
 }
 
+
+// loadfile function with different formats
 void LoadFile(const std::string &filename, std::string &data, const std::string &format)
 {
     try
@@ -141,6 +168,8 @@ void LoadFile(const std::string &filename, std::string &data, const std::string 
     }
 }
 
+
+//setup function
 int setup(const char *path, const char *format)
 {
     std::string strPath(path);
@@ -184,8 +213,8 @@ int setup(const char *path, const char *format)
     }
 }
 
-// Hàm generateSecretKey đã được cải thiện với try-catch
-int generateSecretKey(const char* publicKeyFile, const char* masterKeyFile, const  char* attributes, const  char* privateKeyFile, const char *format)
+// generateSecretKey function
+int generateSecretKey(const char *publicKeyFile, const char *masterKeyFile, const char *attributes, const char *privateKeyFile, const char *format)
 {
     std::string strFileFormat(format);
     std::string strPublicKeyFile(publicKeyFile);
@@ -212,8 +241,10 @@ int generateSecretKey(const char* publicKeyFile, const char* masterKeyFile, cons
             throw std::runtime_error("Failed to convert master key from JSON.");
         }
 
-        // Tách các thuộc tính từ chuỗi đầu vào
+        attributes = toLowerCase(attributes);
+        // std::cout << "Attributes: " << attributes << std::endl; // Debug
         std::vector<std::string> attrVec = splitAttributes(attributes);
+
         std::vector<const char *> attrList;
 
         for (const auto &attr : attrVec)
@@ -221,7 +252,6 @@ int generateSecretKey(const char* publicKeyFile, const char* masterKeyFile, cons
             attrList.push_back(attr.c_str());
         }
 
-        // Sử dụng số lượng thuộc tính từ attrList.size()
         const void *secretKey = rabe_cp_ac17_generate_secret_key(masterKey, attrList.data(), attrList.size());
         if (!secretKey)
         {
@@ -234,7 +264,6 @@ int generateSecretKey(const char* publicKeyFile, const char* masterKeyFile, cons
             throw std::runtime_error("Failed to convert secret key to JSON.");
         }
 
-        // Ghi Secret Key ra file theo định dạng đã chọn
         if (strFileFormat == "JsonText" || strFileFormat == "HEX" || strFileFormat == "Base64")
         {
             SaveFile(privateKeyFile, secretKeyJson, strFileFormat);
@@ -256,17 +285,17 @@ int generateSecretKey(const char* publicKeyFile, const char* masterKeyFile, cons
     }
 }
 
+// encryptMessage function
 int encryptMessage(const char *publicKeyFile, const char *plaintextFile, const char *policy, const char *ciphertextFile, const char *format)
 {
     try
     {
         std::string strPublicKeyFile(publicKeyFile);
         std::string strPlaintextFile(plaintextFile);
-        std::string strPolicy(policy);
         std::string strCiphertextFile(ciphertextFile);
         std::string strFileFormat(format);
 
-        // Đọc Public Key từ file theo định dạng
+        // read public key from file based on format
         std::string publicKeyStr;
         if (strFileFormat == "JsonText" || strFileFormat == "HEX" || strFileFormat == "Base64")
         {
@@ -287,7 +316,7 @@ int encryptMessage(const char *publicKeyFile, const char *plaintextFile, const c
             return -1;
         }
 
-        // Đọc plaintext từ file
+        // read plaintext from file
         std::ifstream file(strPlaintextFile);
         if (!file)
         {
@@ -296,10 +325,11 @@ int encryptMessage(const char *publicKeyFile, const char *plaintextFile, const c
         }
         std::string plaintext((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-        const char *jsonPolicy = ensureJsonString(strPolicy);
+        const char *jsonPolicy = ensureJsonString(policy);
 
-        // Mã hóa dữ liệu
+        // encrypt the plaintext
         const void *cipher = rabe_cp_ac17_encrypt(publicKey, jsonPolicy, plaintext.c_str(), plaintext.length());
+        //std::cout << "jsonPolicy: " << jsonPolicy << std::endl; // Debug
         if (!cipher)
         {
             const char *error = rabe_get_thread_last_error();
@@ -315,7 +345,7 @@ int encryptMessage(const char *publicKeyFile, const char *plaintextFile, const c
             return -1;
         }
 
-        // Ghi cipher ra file theo định dạng đã chọn
+        // save the ciphertext to file
         if (strFileFormat == "JsonText" || strFileFormat == "HEX" || strFileFormat == "Base64")
         {
             SaveFile(strCiphertextFile, cipherJson, strFileFormat);
@@ -338,6 +368,7 @@ int encryptMessage(const char *publicKeyFile, const char *plaintextFile, const c
     }
 }
 
+// decryptMessage function
 int decryptMessage(const char *publicKeyFile, const char *privateKeyFile, const char *ciphertextFile, const char *recovertextFile, const char *format)
 {
     try
@@ -348,7 +379,7 @@ int decryptMessage(const char *publicKeyFile, const char *privateKeyFile, const 
         std::string strRecovertextFile(recovertextFile);
         std::string strFileFormat(format);
 
-        // Đọc Secret Key từ file theo định dạng
+        // read key from file based on format
         std::string secretKeyStr;
         if (strFileFormat == "JsonText" || strFileFormat == "HEX" || strFileFormat == "Base64")
         {
@@ -369,7 +400,7 @@ int decryptMessage(const char *publicKeyFile, const char *privateKeyFile, const 
             return -1;
         }
 
-        // Đọc Cipher từ file theo định dạng
+        // read ciphertext from file based on format
         std::string cipherStr;
         if (strFileFormat == "JsonText" || strFileFormat == "HEX" || strFileFormat == "Base64")
         {
@@ -392,7 +423,7 @@ int decryptMessage(const char *publicKeyFile, const char *privateKeyFile, const 
             return -1;
         }
 
-        // Giải mã dữ liệu
+        // decrypt the ciphertext
         CBoxedBuffer decryptedBuffer = rabe_cp_ac17_decrypt(cipher, secretKey);
         if (!decryptedBuffer.buffer)
         {
@@ -403,7 +434,7 @@ int decryptMessage(const char *publicKeyFile, const char *privateKeyFile, const 
             return -1;
         }
 
-        // Ghi dữ liệu giải mã ra file
+        // save the recovered text to file
         std::ofstream outputFile(strRecovertextFile, std::ios::binary);
         if (!outputFile)
         {
@@ -430,8 +461,7 @@ int decryptMessage(const char *publicKeyFile, const char *privateKeyFile, const 
     }
 }
 
-
-// Hàm main xử lý CLI
+// main function
 int main(int argc, char *argv[])
 {
     if (argc < 2)
