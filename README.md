@@ -6,6 +6,8 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
 - [CryptoPP Library](https://github.com/weidai11/cryptopp)
 - [CP-ABE AC17 Scheme](https://eprint.iacr.org/2017/807)
 - [Rabe-ffi](https://github.com/Aya0wind/Rabe-ffi)
+
+
 ## Installation for Windows
 
 1. Clone the repository:
@@ -102,8 +104,6 @@ Special thanks to [Aya0wind](https://github.com/Aya0wind) for the [Rabe-ffi](htt
 
 ## License
 
-This project is licensed under the MIT License, a permissive open-source license that allows anyone to use, modify, and distribute the code. We encourage you to clone, fork, and contribute to this project to help improve and expand its capabilities.
+This project is open-source and available for anyone to use, modify, and distribute. We encourage you to clone, fork, and contribute to this project to help improve and expand its capabilities.
 
-By contributing to this project, you agree that your contributions will be licensed under the same MIT License.
-
-For more details, please refer to the [LICENSE](LICENSE) file.
+By contributing to this project, you agree that your contributions will be available under the same open terms.
