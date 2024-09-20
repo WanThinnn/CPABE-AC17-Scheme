@@ -4,7 +4,7 @@ import sys
 import os
 
 # Đường dẫn đến thư viện .dylib hoặc .so của bạn
-lib_path = os.path.join(os.getcwd(), "cp_ac17_scheme.dll")  # hoặc "libabe.so" trên Linux
+lib_path = os.path.join(os.getcwd(), "libac17.dll")  # hoặc "libabe.so" trên Linux
 
 # Tải thư viện .dylib/.so
 abe_lib = ctypes.CDLL(lib_path)

@@ -8,7 +8,7 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
 - [Rabe-ffi](https://github.com/Aya0wind/Rabe-ffi)
 
 
-## Installation for Windows
+## Building for Windows
 
 1. Clone the repository:
     ```sh
@@ -32,22 +32,25 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
             "label": "C/C++: cl.exe build executable",
             "command": "cl.exe",
             "args": [
-                "/MD",
-                "/GS",
-                "/O2",
-                "/Zi",
-                "/EHsc",
-                "/Fe:${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "${file}",
-                "/I${workspaceFolder}\\include",
-                "/link",
-                "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
-                "librabe_ffi.lib",
-                "cryptlib.lib", //CryptoPP890 Library
-                "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
-                "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
-                "ntdll.lib", // Windows system libraries
-                "/MACHINE:X64"
+              "/MD",
+              "/GS",
+              "/O2",
+              "/Zi",
+              "/EHsc",
+              //"/LD",  // Add this parameter to create DLL
+              //"/DBUILD_DLL", // Add this parameter to create DLL
+              //"/Fe:${fileDirname}\\${fileBasenameNoExtension}.dll",
+              "/Fe:${fileDirname}\\${fileBasenameNoExtension}.exe",
+              "${file}",
+              "/I${workspaceFolder}\\include",
+              "/link",
+              "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
+              "rabe_ffi.lib",
+              "cryptlib.lib", //CryptoPP890 Library
+              "bcrypt.lib", // Provides cryptographic functions (Windows system libraries)
+              "advapi32.lib", // Provides advanced API services including security and registry functions (Windows system libraries)
+              "ntdll.lib", // Windows system libraries
+              "/MACHINE:X64"
             ],
             "problemMatcher": ["$msCompile"],
             "group": {
