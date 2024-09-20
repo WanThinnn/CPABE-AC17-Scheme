@@ -8,7 +8,7 @@ Ciphertext Policy Attribute Based Encryption - AC17 Scheme Library for C/C++ in 
 - [Rabe-ffi](https://github.com/Aya0wind/Rabe-ffi)
 
 
-## Installation for Windows
+## Building for Windows
 
 1. Clone the repository:
     ```sh
