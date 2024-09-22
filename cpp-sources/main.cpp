@@ -1,19 +1,19 @@
+#include <cryptopp/cryptlib.h>
+#include <integer.h>
+#include <osrng.h>
 #include <iostream>
-#include <string>
 
 int main() {
-    std::string text = "Hello, World!";
+    // Khai báo một số Integer siêu lớn
+    CryptoPP::Integer largeNumber("1234567890123456789012345678901234567890");
 
-    // Chuyển đổi sang mảng byte
-    const unsigned char *byte_array = reinterpret_cast<const unsigned char *>(text.data());
+    // In ra số Integer
+    std::cout << "Large Integer: " << largeNumber << std::endl;
 
-    // In từng byte ra màn hình
-    for (size_t i = 0; i < text.size(); ++i) {
-        std::cout << std::hex << static_cast<int>(byte_array[i]) << "";
-    }
-
-    // Xuất độ dài của chuỗi
-    std::cout << "\nĐộ dài của chuỗi (tính theo byte): " << text.size() << " bytes" << std::endl;
+    // Hoặc bạn có thể sử dụng Encode để chuyển đổi thành chuỗi
+    std::string encoded;
+    largeNumber.Encode(CryptoPP::StringSink(encoded), largeNumber.MinEncodedSize());
+    std::cout << "Encoded Integer: " << encoded << std::endl;
 
     return 0;
 }

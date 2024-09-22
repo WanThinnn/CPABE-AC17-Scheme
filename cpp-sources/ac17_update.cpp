@@ -410,7 +410,6 @@ int AC17encrypt(const char *publicKeyFile, const char *plaintextFile, const char
         return -1;
     }
 }
-
 // AC17decrypt function
 int AC17decrypt(const char *publicKeyFile, const char *privateKeyFile, const char *ciphertextFile, const char *recovertextFile)
 {
@@ -429,35 +428,36 @@ int AC17decrypt(const char *publicKeyFile, const char *privateKeyFile, const cha
         if (decodedCiphertext.size() < CryptoPP::AES::BLOCKSIZE)
         {
             throw std::runtime_error("Invalid ciphertext: too small to contain IV.");
-            return -1;
         }
 
         CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE];
         std::memcpy(iv, decodedCiphertext.data(), sizeof(iv));
-        size_t offset = sizeof(iv); // Start after IV
+        
+        // Khởi tạo offset sau IV
+        uint64_t offset = sizeof(iv);
 
-        // Read lenEncryptedKey directly from decodedCiphertext
+        // Đảm bảo kích thước còn lại đủ để chứa kích thước khóa mã hóa
         if (decodedCiphertext.size() < offset + sizeof(uint64_t))
         {
             throw std::runtime_error("Invalid ciphertext: too small to contain encrypted key length.");
         }
 
-        uint64_t lenEncryptedKey;
+        // Đọc chiều dài của khóa mã hóa
+        uint64_t lenEncryptedKey; // Sử dụng uint64_t
         std::memcpy(&lenEncryptedKey, decodedCiphertext.data() + offset, sizeof(lenEncryptedKey));
-        offset += sizeof(lenEncryptedKey);
+        offset += sizeof(lenEncryptedKey); // Cập nhật offset
 
-        // Check if remaining size is sufficient for encrypted key and ciphertext
+        // Kiểm tra kích thước còn lại có đủ cho khóa mã hóa và ciphertext không
         if (decodedCiphertext.size() < offset + lenEncryptedKey)
         {
             throw std::runtime_error("Invalid ciphertext: insufficient size for encrypted key.");
-            return -1;
         }
 
-        // Extract encrypted key
+        // Trích xuất khóa mã hóa
         std::string encryptedKeyB = decodedCiphertext.substr(offset, lenEncryptedKey);
         offset += lenEncryptedKey;
 
-        // Extract remaining ciphertext
+        // Trích xuất ciphertext còn lại
         std::string ciphertext = decodedCiphertext.substr(offset);
 
         // Load private key
@@ -465,8 +465,7 @@ int AC17decrypt(const char *publicKeyFile, const char *privateKeyFile, const cha
         if (!LoadFile(privateKeyFile, secretKeyData, "Base64"))
         {
             throw std::runtime_error("Failed to load private key.");
-            return -1;
-        };
+        }
         const void *secretKey = rabe_cp_ac17_secret_key_from_json(secretKeyData.c_str());
 
         // Decrypt the random key using CP-ABE
@@ -478,16 +477,17 @@ int AC17decrypt(const char *publicKeyFile, const char *privateKeyFile, const cha
             return -1;
         }
 
-        // decrypt the ciphertext
+        // Decrypt the ciphertext
         CBoxedBuffer recoveredKey = rabe_cp_ac17_decrypt(encryptedKey, secretKey);
         if (!recoveredKey.buffer)
         {
             const char *error = rabe_get_thread_last_error();
-            std::cerr << "Decryption failed: " << (error ? error : "Unknown error") << std::endl;
+            std::cerr << "CP-ABE Decryption failed: " << (error ? error : "Unknown error") << std::endl;
             rabe_cp_ac17_free_secret_key(secretKey);
             rabe_cp_ac17_free_cipher(encryptedKey);
             return -1;
         }
+
         // Convert recovered key to CryptoPP::Integer
         CryptoPP::Integer recoveredRandomKey(reinterpret_cast<const CryptoPP::byte *>(recoveredKey.buffer), recoveredKey.len);
 
@@ -512,7 +512,6 @@ int AC17decrypt(const char *publicKeyFile, const char *privateKeyFile, const cha
         if (!df.GetLastResult())
         {
             throw std::runtime_error("Decryption failed: MAC not valid.");
-            return -1;
         }
 
         // Save the decrypted message to file
