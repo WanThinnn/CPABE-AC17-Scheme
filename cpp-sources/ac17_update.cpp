@@ -10,6 +10,9 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <iomanip>
+
+#include <winsock2.h>
 #include "rabe/rabe.h"
 #include "cryptopp/hex.h"
 #include "cryptopp/base64.h"
@@ -18,6 +21,7 @@
 
 using namespace std;
 using namespace CryptoPP;
+
 // Các hàm hỗ trợ đọc/ghi file, và các hàm liên quan đến RABE ở đây...
 
 // function to split a string into a vector of strings
@@ -36,13 +40,15 @@ std::vector<std::string> splitAttributes(const std::string &input)
 }
 
 // Function to convert a string to lowercase
-char* toLowerCase(const char* str) {
+char *toLowerCase(const char *str)
+{
     size_t len = std::strlen(str);
-    char* lowerStr = new char[len + 1];
+    char *lowerStr = new char[len + 1];
     std::strcpy(lowerStr, str);
 
     // Convert to lowercase
-    std::transform(lowerStr, lowerStr + len, lowerStr, [](unsigned char c) { return std::tolower(c); });
+    std::transform(lowerStr, lowerStr + len, lowerStr, [](unsigned char c)
+                   { return std::tolower(c); });
 
     return lowerStr;
 }
@@ -95,8 +101,8 @@ char *ensureJsonString(const char *input)
     return result;
 }
 
-// savefile function with different formats
-void SaveFile(const std::string &filename, const char *data, const std::string &format)
+// Hàm lưu file đơn giản, không xử lý định dạng
+void SaveFile(const std::string &filename, const char *data)
 {
     if (data == nullptr)
     {
@@ -108,38 +114,33 @@ void SaveFile(const std::string &filename, const char *data, const std::string &
 
     try
     {
-        if (format == "JsonText")
+        // Mở file để ghi dữ liệu nhị phân
+        std::ofstream file(filename, std::ios::binary);
+        if (!file)
         {
-            // Lưu dữ liệu như văn bản
-            CryptoPP::FileSink file(filename.c_str(), true); // true: nghĩa là "binary mode"
-            file.Put(reinterpret_cast<const CryptoPP::byte *>(data), data_len);
-            file.MessageEnd(); // Đảm bảo file đã ghi đầy đủ dữ liệu
+            std::cerr << "Error: Cannot open file " << filename << std::endl;
+            return;
         }
-        else if (format == "Base64")
+
+        // Ghi dữ liệu vào file
+        file.write(data, data_len);
+        if (!file)
         {
-            CryptoPP::StringSource ss(reinterpret_cast<const CryptoPP::byte *>(data), data_len, true,
-                                      new CryptoPP::Base64Encoder(
-                                          new CryptoPP::FileSink(filename.c_str()), false));
+            std::cerr << "Error: Failed to write data to file " << filename << std::endl;
         }
-        else if (format == "HEX")
-        {
-            CryptoPP::StringSource ss(reinterpret_cast<const CryptoPP::byte *>(data), data_len, true,
-                                      new CryptoPP::HexEncoder(
-                                          new CryptoPP::FileSink(filename.c_str()), false));
-        }
-        else
-        {
-            std::cerr << "Unsupported format. Please choose 'JsonText', 'Base64', or 'HEX'\n";
-        }
-    }
-    catch (const CryptoPP::Exception &ex)
-    {
-        std::cerr << "Crypto++ exception: " << ex.what() << std::endl;
+        file.close();
     }
     catch (const std::exception &ex)
     {
-        std::cerr << "Standard exception: " << ex.what() << std::endl;
+        std::cerr << "Exception: " << ex.what() << std::endl;
     }
+}
+
+std::vector<uint8_t> convertToByteArray(const void *encryptedKey, size_t length)
+{
+    const uint8_t *bytePtr = static_cast<const uint8_t *>(encryptedKey);
+    std::vector<uint8_t> byteArray(bytePtr, bytePtr + length);
+    return byteArray;
 }
 
 // loadfile function with different formats
@@ -177,16 +178,15 @@ void LoadFile(const std::string &filename, std::string &data, const std::string 
     }
 }
 
-std::string SHA256Hash(const std::string &input)
+void printHex(const std::string &data)
 {
-    CryptoPP::SHA256 hash;
-    std::string output;
-
-    CryptoPP::StringSource ss(input, true, new CryptoPP::HashFilter(hash, new CryptoPP::StringSink(output)));
-    return output;
+    for (unsigned char c : data)
+    {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(c);
+    }
+    std::cout << std::dec << std::endl; // Reset lại chế độ in
 }
 
-// Hàm để mã hóa plaintext và đóng gói tất cả vào một file ciphertext duy nhất
 void AC17encrypt(const char *publicKeyFile, const char *plaintextFile, const char *policy, const char *ciphertextFile)
 {
     try
@@ -195,121 +195,199 @@ void AC17encrypt(const char *publicKeyFile, const char *plaintextFile, const cha
         std::string strPlaintextFile(plaintextFile);
         std::string strCiphertextFile(ciphertextFile);
 
-        // Tạo khóa ngẫu nhiên siêu dài
-        int keyBitSize = 12288; // 12288-bit = 1536-byte
+        // Generate a large random key (1536 bytes)
         AutoSeededRandomPool prng;
-        CryptoPP::Integer randomKey(prng, keyBitSize);
+        CryptoPP::Integer randomKey(prng, 1536);
 
-        // Mã hóa số nguyên thành chuỗi nhị phân để dùng cho hàm băm
-        std::string binaryKey;
-        randomKey.Encode(StringSink(binaryKey).Ref(), randomKey.MinEncodedSize());
+        // Encode random_key to string
+        std::string randomKeyStr;
+        randomKey.Encode(CryptoPP::StringSink(randomKeyStr).Ref(), randomKey.MinEncodedSize());
 
-        // Băm binaryKey bằng SHA3-256
-        std::string hashDigest;
-        CryptoPP::SHA3_512 hash;
-        hash.Update(reinterpret_cast<const CryptoPP::byte *>(binaryKey.data()), binaryKey.size());
-
-        // Lấy kết quả băm
-        hashDigest.resize(hash.DigestSize());
-        hash.Final(reinterpret_cast<CryptoPP::byte *>(&hashDigest[0]));
-
-        // Chia kết quả băm SHA3-256 thành key và IV (256-bit mỗi cái)
-        std::string aesKey(hashDigest.begin(), hashDigest.begin() + 32); // 256-bit AES key
-        std::string iv(hashDigest.begin() + 32, hashDigest.end());       // 256-bit IV
-
-        // Chuyển key và IV sang Base64
-        std::string keyBase64, ivBase64;
-        StringSource(aesKey, true, new Base64Encoder(new StringSink(keyBase64), false));
-        StringSource(iv, true, new Base64Encoder(new StringSink(ivBase64), false));
-
-        // read public key from file based on format
-        std::string publicKeyStr;
+        // Encrypt random_key using CP-ABE
         std::string publicKeyData;
         LoadFile(strPublicKeyFile, publicKeyData, "Base64");
-        publicKeyStr = publicKeyData;
+        const void *publicKey = rabe_ac17_public_key_from_json(publicKeyData.c_str());
 
-        const void *publicKey = rabe_ac17_public_key_from_json(publicKeyStr.c_str());
-        if (!publicKey)
-        {
-            std::cerr << "Failed to load public key." << std::endl;
-        }
+        const char *jsonPolicy = ensureJsonString(policy);
+        const void *encryptedKey = rabe_cp_ac17_encrypt(publicKey, jsonPolicy, randomKeyStr.c_str(), randomKeyStr.size());
 
-        // read plaintext from file
+        // Serialize encryptedKey to JSON
+        std::string encryptedKeyB = rabe_cp_ac17_cipher_to_json(encryptedKey);
+
+        // Create AES key by hashing the random key
+        CryptoPP::SHA256 hash;
+        std::string aesKey(hash.DigestSize(), 0);
+        hash.Update(reinterpret_cast<const CryptoPP::byte *>(randomKeyStr.data()), randomKeyStr.size());
+        hash.Final(reinterpret_cast<CryptoPP::byte *>(&aesKey[0]));
+
+        // Read plaintext from file
         std::ifstream file(strPlaintextFile);
         if (!file)
         {
-            std::cerr << "Failed to open plaintext file." << std::endl;
+            throw std::runtime_error("Failed to open plaintext file.");
         }
         std::string plaintext((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-        // Encrypt random_key using CP-ABE
-        const char *jsonPolicy = ensureJsonString(policy);
+        // AES-GCM encryption
+        CryptoPP::GCM<CryptoPP::AES>::Encryption aes;
+        CryptoPP::SecByteBlock key(reinterpret_cast<const CryptoPP::byte *>(aesKey.data()), aesKey.size());
+        CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE];
+        prng.GenerateBlock(iv, sizeof(iv));
+        aes.SetKeyWithIV(key, key.size(), iv);
 
-        // encrypt the plaintext
-        std::string randomKeyStr;
-        randomKeyStr.resize(randomKey.MinEncodedSize());
-        randomKey.Encode(reinterpret_cast<CryptoPP::byte *>(&randomKeyStr[0]), randomKeyStr.size());
+        // Encrypt plaintext
+        std::string ciphertext;
+        CryptoPP::AuthenticatedEncryptionFilter ef(aes, new CryptoPP::StringSink(ciphertext));
+        ef.ChannelPut(CryptoPP::DEFAULT_CHANNEL, reinterpret_cast<const CryptoPP::byte *>(plaintext.data()), plaintext.size());
+        ef.ChannelMessageEnd(CryptoPP::DEFAULT_CHANNEL);
 
-        const void *encryptedKey = rabe_cp_ac17_encrypt(publicKey, jsonPolicy, randomKeyStr.c_str(), randomKeyStr.size());
-        if (!encryptedKey)
-        {
-            cerr << "Failed to encrypt the key." << endl;
-            throw runtime_error("Encryption failed.");
-        }
-
-        // Serialize to JSON
-        stringstream encryptedKeyStream;
-        encryptedKeyStream << rabe_cp_ac17_cipher_to_json(encryptedKey);
-        string encryptedKeyB = encryptedKeyStream.str();
-
-        // Setup AES-GCM
-        GCM<AES>::Encryption aesGcm;
-        CryptoPP::SecByteBlock key(reinterpret_cast<const CryptoPP::byte*>(aesKey.data()), aesKey.size());
-        CryptoPP::SecByteBlock ivBlock(reinterpret_cast<const CryptoPP::byte*>(iv.data()), iv.size());
-        aesGcm.SetKeyWithIV(key, key.size(), ivBlock, ivBlock.size());
-
-        // Encrypt the plaintext
-        string ciphertext;
-        AuthenticatedEncryptionFilter ef(aesGcm, new StringSink(ciphertext));
-        ef.ChannelPut(DEFAULT_CHANNEL, reinterpret_cast<const CryptoPP::byte *>(plaintext.data()), plaintext.size());
-        ef.ChannelMessageEnd(DEFAULT_CHANNEL);
-
-        // Combine nonce, ciphertext, and authTag
-        string combined;
-        combined.append(reinterpret_cast<const char *>(iv.data()), iv.size());
+        // Combine nonce (IV), encrypted key length, encrypted key, and ciphertext
+        std::string combined;
+        combined.append(reinterpret_cast<const char *>(iv), sizeof(iv));
+        uint64_t lenEncryptedKey = encryptedKeyB.size();
+        combined.append(reinterpret_cast<const char *>(&lenEncryptedKey), sizeof(lenEncryptedKey));
+        combined.append(encryptedKeyB);
         combined.append(ciphertext);
 
-        // Encode Base64 for encrypted key and ciphertext
-        stringstream finalOutputStream;
-        uint64_t lenEncryptedKey = encryptedKeyB.size();
-        finalOutputStream.write(reinterpret_cast<const char *>(&lenEncryptedKey), sizeof(lenEncryptedKey));
-        finalOutputStream << encryptedKeyB;
-        finalOutputStream << combined;
+        // Final output in HEX
+        std::string finalOutput;
+        CryptoPP::StringSource(combined, true, new CryptoPP::HexEncoder(new CryptoPP::StringSink(finalOutput)));
 
-        // Encode to Base64
-        string base64Output;
-        stringstream base64Stream;
-        StringSource(finalOutputStream.str(), true, new Base64Encoder(new StringSink(base64Output), false));
-
-        // Save final output to file
-        SaveFile(strCiphertextFile, base64Output.c_str(), "Base64");
-
-        std::cout << base64Output;
+        // Save to file
+        SaveFile(strCiphertextFile, finalOutput.c_str());
+        std::cout << "Encryption successful!" << std::endl;
     }
     catch (const CryptoPP::Exception &ex)
     {
-        cerr << "Crypto++ exception: " << ex.what() << endl;
+        std::cerr << "Crypto++ exception: " << ex.what() << std::endl;
         throw;
     }
     catch (const std::exception &ex)
     {
-        cerr << "Standard exception: " << ex.what() << endl;
+        std::cerr << "Standard exception: " << ex.what() << std::endl;
+        throw;
+    }
+}
+
+void AC17decrypt(const char *publicKeyFile, const char *ciphertextFile, const char *privateKeyFile, const char *plaintextFile)
+{
+    try
+    {
+        // Load HEX-encoded ciphertext from file
+        std::string strCiphertextFile(ciphertextFile);
+        std::string encodedCiphertext;
+        CryptoPP::FileSource fileSource(strCiphertextFile.c_str(), true, new CryptoPP::StringSink(encodedCiphertext));
+
+        // Decode from HEX
+        std::string decodedCiphertext;
+        CryptoPP::StringSource(encodedCiphertext, true, new CryptoPP::HexDecoder(new CryptoPP::StringSink(decodedCiphertext)));
+
+        // Print size of decoded ciphertext for debugging
+        std::cout << "Decoded ciphertext size: " << decodedCiphertext.size() << std::endl;
+
+        // Extract nonce (IV)
+        if (decodedCiphertext.size() < CryptoPP::AES::BLOCKSIZE)
+        {
+            throw std::runtime_error("Invalid ciphertext: too small to contain IV.");
+        }
+
+        CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE];
+        std::memcpy(iv, decodedCiphertext.data(), sizeof(iv));
+        size_t offset = sizeof(iv); // Start after IV
+
+        // Read lenEncryptedKey directly from decodedCiphertext
+        if (decodedCiphertext.size() < offset + sizeof(uint64_t))
+        {
+            throw std::runtime_error("Invalid ciphertext: too small to contain encrypted key length.");
+        }
+
+        uint64_t lenEncryptedKey;
+        std::memcpy(&lenEncryptedKey, decodedCiphertext.data() + offset, sizeof(lenEncryptedKey));
+        offset += sizeof(lenEncryptedKey);
+
+        // Check if remaining size is sufficient for encrypted key and ciphertext
+        if (decodedCiphertext.size() < offset + lenEncryptedKey)
+        {
+            throw std::runtime_error("Invalid ciphertext: insufficient size for encrypted key.");
+        }
+
+        // Extract encrypted key
+        std::string encryptedKeyB = decodedCiphertext.substr(offset, lenEncryptedKey);
+        offset += lenEncryptedKey;
+        std::cout << "Encrypted key: " << encryptedKeyB << endl; // Debug
+        // Extract remaining ciphertext
+        std::string ciphertext = decodedCiphertext.substr(offset);
+
+        // Load private key
+        std::string secretKeyData;
+        LoadFile(privateKeyFile, secretKeyData, "Base64");
+        const void *secretKey = rabe_cp_ac17_secret_key_from_json(secretKeyData.c_str());
+
+        // Decrypt the random key using CP-ABE
+        const void *encryptedKey = rabe_cp_ac17_cipher_from_json(encryptedKeyB.c_str());
+        if (!encryptedKey)
+        {
+            std::cerr << "Failed to load cipher." << std::endl;
+            rabe_cp_ac17_free_secret_key(secretKey);
+                }
+
+        // decrypt the ciphertext
+        CBoxedBuffer recoveredKey = rabe_cp_ac17_decrypt(encryptedKey, secretKey);
+        if (!recoveredKey.buffer)
+        {
+            const char *error = rabe_get_thread_last_error();
+            std::cerr << "Decryption failed: " << (error ? error : "Unknown error") << std::endl;
+            rabe_cp_ac17_free_secret_key(secretKey);
+            rabe_cp_ac17_free_cipher(encryptedKey);
+            // return -1;
+        }
+        // Convert recovered key to CryptoPP::Integer
+        CryptoPP::Integer recoveredRandomKey(reinterpret_cast<const CryptoPP::byte *>(recoveredKey.buffer), recoveredKey.len);
+
+        // Derive AES key from recovered random key
+        CryptoPP::SHA256 hash;
+        std::string aesKey(hash.DigestSize(), 0);
+        std::string recoveredKeyStr;
+        recoveredRandomKey.Encode(CryptoPP::StringSink(recoveredKeyStr).Ref(), recoveredRandomKey.MinEncodedSize());
+        hash.Update(reinterpret_cast<const CryptoPP::byte *>(recoveredKeyStr.data()), recoveredKeyStr.size());
+        hash.Final(reinterpret_cast<CryptoPP::byte *>(&aesKey[0]));
+
+        // Decrypt using AES-GCM
+        std::string recovered;
+        CryptoPP::GCM<CryptoPP::AES>::Decryption decryptor;
+        decryptor.SetKeyWithIV(reinterpret_cast<const CryptoPP::byte *>(aesKey.data()), aesKey.size(), iv);
+
+        CryptoPP::AuthenticatedDecryptionFilter df(decryptor, new CryptoPP::StringSink(recovered),
+                                                   CryptoPP::AuthenticatedDecryptionFilter::DEFAULT_FLAGS);
+
+        CryptoPP::StringSource ss2(ciphertext, true, new CryptoPP::Redirector(df));
+
+        if (!df.GetLastResult())
+        {
+            throw std::runtime_error("Decryption failed: MAC not valid.");
+        }
+
+        // Save the decrypted message to file
+        CryptoPP::FileSink fileSink(plaintextFile);
+        fileSink.Put(reinterpret_cast<const CryptoPP::byte *>(recovered.data()), recovered.size());
+
+        std::cout << "Decryption successful!" << std::endl;
+    }
+    catch (const CryptoPP::Exception &ex)
+    {
+        std::cerr << "Crypto++ exception: " << ex.what() << std::endl;
+        throw;
+    }
+    catch (const std::exception &ex)
+    {
+        std::cerr << "Standard exception: " << ex.what() << std::endl;
         throw;
     }
 }
 
 int main()
 {
-    AC17encrypt("test_file/public_key.key", "test_file/plaintext.txt", "(A and B)", "test_file/ciphertext.txt");
+    AC17encrypt("test_file/public_key.key", "test_file/plaintext.txt", "(A or B)", "test_file/ciphertext.txt");
+    AC17decrypt("test_file/public_key.key", "test_file/ciphertext.txt", "test_file/private_key.key", "test_file/recovertext.txt");
     return 0;
 }
