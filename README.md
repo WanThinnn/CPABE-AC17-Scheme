@@ -175,5 +175,4 @@ Special thanks to [Aya0wind](https://github.com/Aya0wind) for the [Rabe-ffi](htt
 ## License
 
 This project is open-source and available for anyone to use, modify, and distribute. We encourage you to clone, fork, and contribute to this project to help improve and expand its capabilities.
-
 By contributing to this project, you agree that your contributions will be available under the same open terms.
