@@ -18,6 +18,7 @@
 #include "cryptopp/base64.h"
 #include "cryptopp/files.h"
 #include <cryptopp/sha3.h>
+#include "ac17gcm.h"
 
 using namespace std;
 using namespace CryptoPP;
