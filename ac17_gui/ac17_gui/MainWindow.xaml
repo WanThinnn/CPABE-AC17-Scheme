@@ -1,0 +1,51 @@
+﻿<Window x:Class="ac17_gui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ac17_gui"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="700" Width="1050">
+    <Grid>
+        <TextBox x:Name="txbpathsetup" HorizontalAlignment="Left" Margin="197,126,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="304" Height="34"/>
+        <Button x:Name="btnReadPublicKey" Content="Read Public Key" HorizontalAlignment="Left" Margin="61,229,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.919,-0.369" Height="34" Width="113" Click="btnReadPublicKey_Click" FontSize="13" FontWeight="Bold"/>
+        <TextBox x:Name="txbPublickey" HorizontalAlignment="Left" Margin="196,229,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="305" Height="34"/>
+        <Button x:Name="btnReadMasterKey" Content="Path for Setup" HorizontalAlignment="Left" Margin="61,126,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.919,-0.369" Height="34" Width="114" Click="btnReadMasterKey_Click" FontSize="13" FontWeight="Bold"/>
+        <Button x:Name="btnReadPlaintext" Content="Read Plaintext" HorizontalAlignment="Left" Margin="61,342,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.919,-0.369" Height="34" Width="113" Click="btnReadPlaintext_Click" FontSize="13" FontWeight="Bold"/>
+        <TextBox x:Name="txbPlaintext" HorizontalAlignment="Left" Margin="196,342,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="305" Height="34"/>
+        <Button x:Name="btnCiphertext" Content="Read Ciphertext" HorizontalAlignment="Left" Margin="61,401,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.919,-0.369" Height="34" Width="113" Click="btnCiphertext_Click" FontSize="13" FontWeight="Bold"/>
+        <TextBox x:Name="txbCiphertext" HorizontalAlignment="Left" Margin="196,401,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="305" Height="34"/>
+        <Button x:Name="btnRcvtext" Content="Read Recovertext" HorizontalAlignment="Left" Margin="61,460,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.919,-0.369" Height="34" Width="113" Click="btnRcvtext_Click" FontSize="13" FontWeight="Bold"/>
+        <TextBox x:Name="txbRcvtext" HorizontalAlignment="Left" Margin="196,460,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="305" Height="34"/>
+        <RichTextBox x:Name="rtbRes" Margin="644,140,0,0" TextChanged="rtbRes_TextChanged" HorizontalAlignment="Left" Width="354" Height="88" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5">
+            <RichTextBox.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleX="-0.724"/>
+                    <RotateTransform/>
+                    <TranslateTransform X="-1.187"/>
+                </TransformGroup>
+            </RichTextBox.RenderTransform>
+            <FlowDocument>
+                <Paragraph>
+                    <Run Text=""/>
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
+        <Button x:Name="btnEncrypt" Content="Encrypt" HorizontalAlignment="Left" Margin="513,544,0,0" VerticalAlignment="Top" Height="38" Width="130" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" Background="{DynamicResource {x:Static SystemColors.GradientActiveCaptionBrushKey}}" FontSize="18" FontWeight="Bold" Click="btnEncrypt_Click"/>
+        <Button x:Name="btnDecrypt" Content="Decrypt" HorizontalAlignment="Left" Margin="671,544,0,0" VerticalAlignment="Top" Height="38" Width="130" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" Background="{DynamicResource {x:Static SystemColors.GradientActiveCaptionBrushKey}}" FontSize="18" FontWeight="Bold" Click="btnDecrypt_Click"/>
+        <Button x:Name="btnGenkey" Content="Genkey" HorizontalAlignment="Left" Margin="361,544,0,0" VerticalAlignment="Top" Height="38" Width="129" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" Background="{DynamicResource {x:Static SystemColors.GradientActiveCaptionBrushKey}}" FontSize="18" FontWeight="Bold" Click="btnGenerateKey_Click"/>
+        <Button x:Name="btnSetup" Content="Setup" HorizontalAlignment="Left" Margin="204,544,0,0" VerticalAlignment="Top" Height="38" Width="129" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" Background="{DynamicResource {x:Static SystemColors.GradientActiveCaptionBrushKey}}" FontSize="18" FontWeight="Bold" Click="btnSetup_Click"/>
+        <Button x:Name="btnReadPrikey" Content="Read Private Key" HorizontalAlignment="Left" Margin="61,285,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.919,-0.369" Height="34" Width="113" FontSize="13" FontWeight="Bold" Click="btnReadPrikey_Click"/>
+        <TextBox x:Name="txbPrikey" HorizontalAlignment="Left" Margin="196,285,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="305" Height="34"/>
+        <TextBox x:Name="txbPolicy" HorizontalAlignment="Left" Margin="643,264,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="354" Height="86" FontSize="13" FontWeight="Bold"/>
+        <TextBox x:Name="txbAttr" HorizontalAlignment="Left" Margin="643,384,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="354" Height="82" TextChanged="TextBox_TextChanged" FontSize="13" FontWeight="Bold"/>
+        <Button x:Name="btnReadMasterKey1" Content="Read Master Key" HorizontalAlignment="Left" Margin="61,179,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.919,-0.369" Height="34" Width="113" FontSize="13" FontWeight="Bold" Click="btnReadMasterKey1_Click"/>
+        <TextBox x:Name="txbMasterkey" HorizontalAlignment="Left" Margin="196,179,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="305" Height="34"/>
+        <Label Content="Policy" HorizontalAlignment="Left" Margin="552,266,0,0" VerticalAlignment="Top" Width="78" FontSize="14" FontWeight="Bold"/>
+        <Label Content="Attributes" HorizontalAlignment="Left" Margin="552,384,0,0" VerticalAlignment="Top" Width="78" FontSize="14" FontWeight="Bold" RenderTransformOrigin="0.047,0.456"/>
+        <Label Content="Result" HorizontalAlignment="Left" Margin="552,140,0,0" VerticalAlignment="Top" Width="78" FontSize="14" FontWeight="Bold"/>
+        <Label Content="CP-ABE AC17 SCHEME&#xD;&#xA;         GUI DEMO" Margin="0,10,0,0" VerticalAlignment="Top" FontSize="36" FontWeight="Bold" Width="406" Foreground="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" HorizontalAlignment="Center"/>
+
+    </Grid>
+</Window>
