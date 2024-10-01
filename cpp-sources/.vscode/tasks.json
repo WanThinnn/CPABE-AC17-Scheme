@@ -32,6 +32,30 @@
         },
         {
             "type": "shell",
+            "label": "C/C++: cl.exe build executable for ac17_gcm256",
+            "command": "cl.exe",
+            "args": [
+                "/MD",
+                "/GS",
+                "/O2",
+                "/Zi",
+                "/EHsc",
+                "/Fe:${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "${file}",
+                "/I${workspaceFolder}\\include",
+                "/link",
+                "/LIBPATH:${workspaceFolder}\\lib\\static-lib",
+                "libac17_gcm256.lib",
+                "/MACHINE:X64"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": "build",
+            "detail": "Task to build executable for ac17_gcm256."
+        },
+        {
+            "type": "shell",
             "label": "C/C++: cl.exe build static library",
             "command": "cl.exe",
             "args": [

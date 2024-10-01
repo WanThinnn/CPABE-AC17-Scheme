@@ -1,19 +1,14 @@
-#include <cryptopp/cryptlib.h>
-#include <integer.h>
-#include <osrng.h>
-#include <iostream>
+#include "ac17_gcm256.h"
 
-int main() {
-    // Khai báo một số Integer siêu lớn
-    CryptoPP::Integer largeNumber("1234567890123456789012345678901234567890");
 
-    // In ra số Integer
-    std::cout << "Large Integer: " << largeNumber << std::endl;
+using namespace std;
 
-    // Hoặc bạn có thể sử dụng Encode để chuyển đổi thành chuỗi
-    std::string encoded;
-    largeNumber.Encode(CryptoPP::StringSink(encoded), largeNumber.MinEncodedSize());
-    std::cout << "Encoded Integer: " << encoded << std::endl;
 
-    return 0;
+int main(){
+    AC17 ac17;
+    ac17.setup("C:\\Users\\WanThinnn\\Downloads");
+    ac17.generateSecretKey("public_key.key", "master_key.key", "a b c d", "private_key.key");
+    ac17.encrypt("public_key.key", "plaintext.txt", "((a or b) and (c or d))", "ciphertext.txt");
+    ac17.decrypt("public_key.key", "private_key.key", "ciphertext.txt", "recovertext.txt");
+    return 0;   
 }
